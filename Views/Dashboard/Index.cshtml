@@ -46,7 +46,7 @@
                                         <a asp-controller="Home" asp-action="JobDetails" asp-route-id="@job.Id">@job.Title</a>
                                     </th>
                                     <td>
-                                        @if (job.Filled)
+                                        @if (job.isFilled)
                                         {
                                             <span class="badge badge-success">Filled</span>
                                         }
@@ -71,7 +71,7 @@
                                             <i class="fa fa-edit"></i>Edit
                                         </a>
                                         <br>
-                                        @if (job.Filled)
+                                        @if (job.isFilled)
                                         {
                                             <a href="#"
                                                class="btn btn-outline-white-secondary">

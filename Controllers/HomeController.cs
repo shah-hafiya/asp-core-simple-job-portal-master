@@ -23,12 +23,14 @@ namespace JobPortal.Controllers
 
         public IActionResult Index()
         {
+            #region Comment
+            
             var jobs = _context.Jobs
-                .Where(x => x.Filled == false)
+                .Where(x => x.isFilled == false)
                 .ToList();
             var trendings = _context.Jobs
                 .Where(b => b.CreatedAt.Month == DateTime.Now.Month)
-                .Where(x => x.Filled == false)
+                .Where(x => x.isFilled == false)
                 .ToList();
             var model = new TrendingJobViewModel
             {
@@ -37,6 +39,12 @@ namespace JobPortal.Controllers
             };
 
             return View(model);
+            
+            #endregion
+
+
+
+
         }
 
         [Route("jobs/{id}/details")]

@@ -25,7 +25,7 @@ namespace JobPortal.Models
         [Url]
         public string Website { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
-        public bool Filled { get; set; } = false;
+        public bool isFilled { get; set; } = false;
         public User User { get; set; }
         public List<Applicant> Applicants { get; set; }
     }

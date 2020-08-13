@@ -1,12 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using JobPortal.Models;
+using JobPortal.ViewModels.Home;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace JobPortal.Controllers
 {
@@ -16,11 +22,16 @@ namespace JobPortal.Controllers
         private readonly ApplicationDbContext _context;
         private UserManager<User> _userManager;
 
-        public JobController(ApplicationDbContext context, UserManager<User> userManager, ILogger<JobController> logger)
+        private readonly QueueClient _queueClient;
+        private readonly IConfiguration _configuration;
+        private const string QUEUE_NAME = "simplequeue";
+
+        public JobController(ApplicationDbContext context, UserManager<User> userManager, ILogger<JobController> logger, IConfiguration config)
         {
             _logger = logger;
             _context = context;
             _userManager = userManager;
+
         }
 
         [Route("jobs")]
@@ -43,7 +54,9 @@ namespace JobPortal.Controllers
         [HttpPost]
         public async Task<IActionResult> Save(Job model)
         {
-            if(ModelState.IsValid)
+            #region Comment
+            /*
+            if (ModelState.IsValid)
             {
                 TempData["type"] = "success";
                 TempData["message"] = "Job posted successfully";
@@ -55,6 +68,66 @@ namespace JobPortal.Controllers
                 await _context.SaveChangesAsync();
 
                 return RedirectToActionPermanent("Index", "Home");
+            }
+            */
+            #endregion
+
+            if(ModelState.IsValid)
+            {
+                TempData["type"] = "success";
+                TempData["message"] = "Jobs posted successfully";
+                using (var httpCllient = new HttpClient())
+                {
+                    httpCllient.DefaultRequestHeaders.Accept.Clear();
+                    httpCllient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    httpCllient.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+
+                    var data = new Dictionary<string, string>
+                {
+                    { "title", model.Title},
+                    { "description", model.Description },
+                    { "location", model.Location },
+                    { "type", model.Type},
+                    { "createdat", model.CreatedAt.ToString() },
+                    { "lastdate", model.LastDate.ToString()},
+                    { "companyname", model.CompanyName },
+                    { "companydescription", model.CompanyDescription},
+                    { "website", model.Website }
+
+
+
+                };
+
+                var httpContent = new StringContent(JsonConvert.SerializeObject(data), System.Text.Encoding.UTF8, "application/json");
+
+                    // POST the object to the specified URI
+                    var response = await httpCllient.PostAsync("http://localhost:59013/api/job/update", httpContent);
+
+                    //Read back the answer from server
+                    var responseString = await response.Content.ReadAsStringAsync();
+
+                    // deserialize using json
+                    OperationResult<AccessToken> result = JsonConvert.DeserializeObject<OperationResult<AccessToken>>(responseString);
+                    if (result.Succeeded)
+                    {
+
+                        return RedirectToAction("Index", "Home");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", "Invalid login attempt");
+                        return View(model);
+                    }
+
+
+
+
+                }
+
+
+
+
+
             }
 
             return View("Create", model);
@@ -97,7 +170,7 @@ namespace JobPortal.Controllers
         public async Task<IActionResult> MarkAsFilled(int id)
         {
             var job = _context.Jobs.SingleOrDefault(x => x.Id == id);
-            job.Filled = true;
+            job.isFilled = true;
             _context.Jobs.Update(job);
             await _context.SaveChangesAsync();
 

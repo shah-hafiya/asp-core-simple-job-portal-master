@@ -29,6 +29,7 @@ namespace JobPortal
             services.AddDbContext<ApplicationDbContext>(x => x.
                 UseMySql(Configuration.GetConnectionString("DefaultConnection"))
                     .ConfigureWarnings(warnings => warnings.Ignore(CoreEventId.IncludeIgnoredWarning)));
+            
 
             services.AddIdentity<User, IdentityRole>(options =>
                 options.Password = new PasswordOptions
@@ -63,6 +64,7 @@ namespace JobPortal
                 options.SlidingExpiration = true;
             });
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddSession();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -81,10 +83,12 @@ namespace JobPortal
                 app.UseHsts();
             }
 
+            app.UseSession();
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
             app.UseAuthentication();
+            
 
             app.UseMvc(routes =>
             {
