@@ -13,6 +13,7 @@ using Newtonsoft.Json;
 using JobPortal.ViewModels.Home;
 using Microsoft.AspNetCore.Http;
 using System.Linq;
+using System.Net;
 
 namespace JobPortal.Controllers
 {
@@ -56,7 +57,7 @@ namespace JobPortal.Controllers
                     FirstName = model.FirstName,
                     LastName = model.LastName,
                     Email = model.Email
-                    
+
                 };
                 var result = await _userManager.CreateAsync(user, model.Password);
                 //IdentityResult roleResult = await _roleManager.CreateAsync(new IdentityRole("Employee"));
@@ -131,7 +132,7 @@ namespace JobPortal.Controllers
                     }
                     else
                     {
-                        
+
                         await _userManager.AddToRoleAsync(user, "Employee");
                     }
 
@@ -152,7 +153,7 @@ namespace JobPortal.Controllers
         [Route("login")]
         public IActionResult Login(string returnUrl = "")
         {
-            var model = new LoginViewModel {ReturnUrl = returnUrl};
+            var model = new LoginViewModel { ReturnUrl = returnUrl };
             return View(model);
         }
 
@@ -187,41 +188,44 @@ namespace JobPortal.Controllers
                     return RedirectToAction("Index", "Home");
                 }
                 */
-                
+
                 #endregion
 
-                
-                using (var httpCllient = new HttpClient())
+
+                using (var httpCllient = new HttpClient(new HttpClientHandler
+                {
+                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+                }))
                 {
                     httpCllient.DefaultRequestHeaders.Accept.Clear();
                     httpCllient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                     httpCllient.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
 
                     var data = new Dictionary<string, string>
-                {
-                    { "email", model.Email},
-                    { "password", model.Password },
-                };
+                    {
+                        { "email", model.Email},
+                        { "password", model.Password }
+                    };
 
                     var httpContent = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
 
                     //POST the object to the specified URI 
-                    var response = await httpCllient.PostAsync("http://localhost:59013/api/auth/login", httpContent);
+                    var response = await httpCllient.PostAsync("https://caswebapi13082020.azurewebsites.net/api/auth/login", httpContent);
 
                     //Read back the answer from server
                     var responseString = await response.Content.ReadAsStringAsync();
 
                     // deserialize using json
-                   OperationResult<AccessToken> result = JsonConvert.DeserializeObject<OperationResult<AccessToken>>(responseString);
+                    OperationResult<AccessToken> result = JsonConvert.DeserializeObject<OperationResult<AccessToken>>(responseString);
                     if (result.Succeeded)
                     {
 
                         HttpContext.Session.SetString("token", result.Entity.Token);
                         //HttpContext.Items.Add("token", result.Entity.Token);
                         httpCllient.DefaultRequestHeaders.Add("Authorization", $"Bearer {result.Entity.Token}");
-                        
+
                         //var httpContent1 = new StringContent(JsonConvert.SerializeObject(data1), Encoding.UTF8, "application/json");
-                        var response1 = await httpCllient.GetAsync($"http://localhost:59013/api/user/{model.Email}");
+                        var response1 = await httpCllient.GetAsync($"https://caswebapi13082020.azurewebsites.net/api/user/{model.Email}");
                         var responseString1 = await response1.Content.ReadAsStringAsync();
 
                         OperationResult<UserWithRoleDto> result1 = JsonConvert.DeserializeObject<OperationResult<UserWithRoleDto>>(responseString1);
@@ -246,7 +250,7 @@ namespace JobPortal.Controllers
                         return View(model);
                     }
                 }
-                
+
 
 
             }
@@ -277,12 +281,12 @@ namespace JobPortal.Controllers
         [Route("employee/update-profile")]
         public async Task<IActionResult> UpdateProfile([FromForm] User model)
         {
-//            _logger.LogError(model.Gender.ToString());
+            //            _logger.LogError(model.Gender.ToString());
             var user = await _userManager.GetUserAsync(HttpContext.User);
             user.FirstName = model.FirstName;
             user.LastName = model.LastName;
             user.Gender = model.Gender;
-            
+
             _context.Users.Update(user);
 
             await _context.SaveChangesAsync();

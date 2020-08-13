@@ -1,15 +1,10 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @using System.Net.Http;
 @using JobPortal.ViewModels.Home
-@using Microsoft.AspNetCore.Http 
+@using Microsoft.AspNetCore.Http
 
 @inject SignInManager<User> SignInManager
 @inject UserManager<User> UserManager
-
-
-
-
-
 
 <!DOCTYPE html>
 <html>
@@ -53,13 +48,34 @@
 <body>
     <script type="text/javascript">
         $(document).ready(function () {
+            //$.ajax({
+            //    url: 'api/serviceapi',
+            //    type: 'GET',
+            //    dataType: 'json',
+            //    success: function (data, textStatus, xhr) {
+            //        console.log(data);
+
+            //    },
+            //    error: function (xhr, textStatus, errorThrown) {
+            //        console.log('Error in Operation');
+            //    }
+            //});
+
+            var location = $('.location-nav a:first-child');
+            location.css({ 'pointer-events': 'none' });
+
             $.ajax({
-                url: 'api/serviceapi',
+                url: '/ip-geolocation',
                 type: 'GET',
                 dataType: 'json',
                 success: function (data, textStatus, xhr) {
-                    console.log(data);
-
+                    if (data != null && data !== undefined && data != null) {
+                        if (data["status"] == "success") {
+                            location.fadeOut(300, function () {
+                                location.text(data['country']).fadeIn(300);
+                            });
+                        }
+                    }
                 },
                 error: function (xhr, textStatus, errorThrown) {
                     console.log('Error in Operation');
@@ -90,88 +106,90 @@
                         <li class="nav-item">
                             <a href="#" class="nav-link">Contact</a>
                         </li>
-                        @{ 
-                            UserWithRoleDto user = new UserWithRoleDto();
-                            if (Context.Session.Keys.Contains("userwithroles"))
+                        @{
+                            UserWithRoleDto user = Context.Session.GetObjectFromJson<UserWithRoleDto>("userwithroles");
+                        }
+
+                        @if (user != null)
+                        {
+                            if (user.Roles.Where(x => x.Name == "Employer").Count() > 0)// HttpContext this.User.IsInRole("Employer") && SignInManager.IsSignedIn(User))
                             {
 
-                                user = Context.Session.GetObjectFromJson<UserWithRoleDto>("userwithroles");
-
-
-                        @if (user.Roles.Where(x => x.Name == "Employer").Count() > 0)// HttpContext this.User.IsInRole("Employer") && SignInManager.IsSignedIn(User))
-                        {                            
-                            
-            <form method="post" style="display: none;" id="logout-form" asp-controller="Account" asp-action="Logout">
-            </form>
-                            <li class="nav-item dropdown">
-                                <a id="clientZone" href="#" data-toggle="dropdown"
-                                   aria-haspopup="true" aria-expanded="false"
-                                   class="nav-link dropdown-toggle has-img mb-3 mb-lg-0 mt-3 mt-lg-0">
-                                    <div class="client-menu-image">
-                                        <div class="inner">
-                                            <img src="#"
-                                                 alt=""
-                                                 class="img-fluid">
+                                <form method="post" style="display: none;" id="logout-form" asp-controller="Account" asp-action="Logout"></form>
+                                <li class="nav-item dropdown">
+                                    <a id="clientZone" href="#" data-toggle="dropdown"
+                                       aria-haspopup="true" aria-expanded="false"
+                                       class="nav-link dropdown-toggle has-img mb-3 mb-lg-0 mt-3 mt-lg-0">
+                                        <div class="client-menu-image">
+                                            <div class="inner">
+                                                <img src="#"
+                                                     alt=""
+                                                     class="img-fluid">
+                                            </div>
                                         </div>
-                                    </div>
-                                    @user.User.FirstName - @user.User.LastName
-                                </a>
-                                <div aria-labelledby="clientZone" class="dropdown-menu">
-                                    <a asp-controller="Dashboard" asp-action="Index" class="dropdown-item">Dashboard</a>
-                                    <a asp-controller="Dashboard" asp-action="Applicants" class="dropdown-item">Applicants </a>
-                                    <a asp-controller="Job" asp-action="Create" class="dropdown-item">
-                                        Post a new job
+                                        @user.User.FirstName - @user.User.LastName
                                     </a>
-                                    <a href="#" class="dropdown-item" onclick="document.getElementById('logout-form').submit();">Logout</a>
-                                </div>
-                            </li> 
-                        }
-                        else if (user.Roles.Where(x => x.Name == "Employee").Count() > 0)//this.User.IsInRole("Employee") && SignInManager.IsSignedIn(User))
-                        {
-                            <form method="post" style="display: none;" id="logout-form" asp-controller="Account" asp-action="Logout">
-                            </form>
-                                            <li class="nav-item dropdown">
-                                                <a id="clientZone" href="#" data-toggle="dropdown"
-                                                   aria-haspopup="true" aria-expanded="false"
-                                                   class="nav-link dropdown-toggle has-img mb-3 mb-lg-0 mt-3 mt-lg-0">
-                                                    <div class="client-menu-image">
-                                                        <div class="inner">
-                                                            <img src="#" alt="" class="img-fluid">
-                                                        </div>
-                                                    </div>
-                                                    @user.User.FirstName @user.User.LastName
-                                                </a>
-                                                <div aria-labelledby="clientZone" class="dropdown-menu">
-                                                    <a asp-controller="Account" asp-action="EditProfile" class="dropdown-item">Edit Profile</a>
-                                                    <a href="#" class="dropdown-item" onclick="document.getElementById('logout-form').submit();">Logout</a>
-                                                </div>
-                                            </li> 
-                            }
-                            }
-                        }
-                                                        else
-                                                        {
-                                            <li class="nav-item dropdown">
-                                                <a id="pages" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-                                                   class="nav-link dropdown-toggle">
-                                                    <i class="fa fa-signing"></i>Register
-                                                </a>
-                                                <div aria-labelledby="pages" class="dropdown-menu">
-                                                    <a asp-controller="Account" asp-action="EmployeeRegister" class="dropdown-item">Employee</a>
-                                                    <a asp-controller="Account" asp-action="EmployerRegister" class="dropdown-item">Employers</a>
-                                                </div>
-                                            </li>
-                                                            <li class="nav-item" style="color: #fff">
-                                                                <a asp-controller="Account" asp-action="Login" class="btn navbar-btn btn-outline-light mb-5 mb-lg-0">
-                                                                    <i class="fa fa-sign-in"></i>Login
-                                                                </a>
-                                                            </li>
-                                                                            <li class="nav-item" style="color: #fff">
+                                    <div aria-labelledby="clientZone" class="dropdown-menu">
+                                        <a asp-controller="Dashboard" asp-action="Index" class="dropdown-item">Dashboard</a>
+                                        <a asp-controller="Dashboard" asp-action="Applicants" class="dropdown-item">Applicants </a>
+                                        <a asp-controller="Job" asp-action="Create" class="dropdown-item">
+                                            Post a new job
+                                        </a>
+                                        <a href="#" class="dropdown-item" onclick="document.getElementById('logout-form').submit();">Logout</a>
+                                    </div>
+                                </li>
 
-                                                                                @*<a asp-controller="Account" asp-action="Login" class="btn navbar-btn btn-outline-light mb-5 mb-lg-0">
-                                                                                        <i class="fa fa-sign-in"></i>Login
-                                                                                    </a>*@
-                                                                            </li>}
+                            }
+                            else if (user.Roles.Where(x => x.Name == "Employee").Count() > 0)//this.User.IsInRole("Employee") && SignInManager.IsSignedIn(User))
+                            {
+                                <form method="post" style="display: none;" id="logout-form" asp-controller="Account" asp-action="Logout"></form>
+                                <li class="nav-item dropdown">
+                                    <a id="clientZone" href="#" data-toggle="dropdown"
+                                       aria-haspopup="true" aria-expanded="false"
+                                       class="nav-link dropdown-toggle has-img mb-3 mb-lg-0 mt-3 mt-lg-0">
+                                        <div class="client-menu-image">
+                                            <div class="inner">
+                                                <img src="#" alt="" class="img-fluid">
+                                            </div>
+                                        </div>
+                                        @user.User.FirstName @user.User.LastName
+                                    </a>
+                                    <div aria-labelledby="clientZone" class="dropdown-menu">
+                                        <a asp-controller="Account" asp-action="EditProfile" class="dropdown-item">Edit Profile</a>
+                                        <a href="#" class="dropdown-item" onclick="document.getElementById('logout-form').submit();">Logout</a>
+                                    </div>
+                                </li>
+
+                            }
+                        }
+                        else
+                        {
+                            <li class="nav-item dropdown">
+                                <a id="pages" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                   class="nav-link dropdown-toggle">
+                                    <i class="fa fa-signing"></i>Register
+                                </a>
+                                <div aria-labelledby="pages" class="dropdown-menu">
+                                    <a asp-controller="Account" asp-action="EmployeeRegister" class="dropdown-item">Employee</a>
+                                    <a asp-controller="Account" asp-action="EmployerRegister" class="dropdown-item">Employers</a>
+                                </div>
+                            </li>
+                            <li class="nav-item" style="color: #fff">
+                                <a asp-controller="Account" asp-action="Login" class="btn navbar-btn btn-outline-light mb-5 mb-lg-0">
+                                    <i class="fa fa-sign-in"></i>Login
+                                </a>
+                            </li>
+                            <li class="nav-item" style="color: #fff">
+
+                                @*<a asp-controller="Account" asp-action="Login" class="btn navbar-btn btn-outline-light mb-5 mb-lg-0">
+                                        <i class="fa fa-sign-in"></i>Login
+                                    </a>*@
+                            </li>
+                        }
+
+                        <li class="nav-item location-nav">
+                            <a href="#" class="nav-link">Loading Location...</a>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -183,15 +201,15 @@
         {
             if (TempData["type"] as string == "sucess")
             {
-<div class="alert alert-success">
-    @TempData["message"]
-</div> }
-                else
-                {
-<div class="alert alert-warning">
-    @TempData["message"]
-</div>}
-            }
+                <div class="alert alert-success">
+                    @TempData["message"]
+                </div> }
+            else
+            {
+                <div class="alert alert-warning">
+                    @TempData["message"]
+                </div>}
+        }
         @RenderBody()
     </div>
 
