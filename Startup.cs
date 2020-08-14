@@ -61,8 +61,8 @@ namespace JobPortal
             //    );
             services.ConfigureApplicationCookie(options =>
             {
-                options.AccessDeniedPath = new PathString("/Account/Login");
-                options.LoginPath = new PathString("/Account/Login");
+                options.AccessDeniedPath = new PathString("/Accounts/Login");
+                options.LoginPath = new PathString("/Accounts/Login");
                 options.SlidingExpiration = true;
             });
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);

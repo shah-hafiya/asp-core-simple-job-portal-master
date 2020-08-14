@@ -262,6 +262,7 @@ namespace JobPortal.Controllers
         [HttpPost]
         public async Task<IActionResult> Logout()
         {
+            HttpContext.Session.Clear();
             await _signManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }

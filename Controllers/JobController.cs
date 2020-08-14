@@ -101,7 +101,7 @@ namespace JobPortal.Controllers
                 var httpContent = new StringContent(JsonConvert.SerializeObject(data), System.Text.Encoding.UTF8, "application/json");
 
                     // POST the object to the specified URI
-                    var response = await httpCllient.PostAsync("http://localhost:59013/api/job/update", httpContent);
+                    var response = await httpCllient.PostAsync("https://caswebapi13082020.azurewebsites.net/api/job/update", httpContent);
 
                     //Read back the answer from server
                     var responseString = await response.Content.ReadAsStringAsync();
