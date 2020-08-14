@@ -267,7 +267,7 @@ namespace JobPortal.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        [Authorize(Roles = "Employee")]
+        //[Authorize(Roles = "Employee")]
         [HttpGet]
         [Route("employee/edit-profile")]
         public async Task<IActionResult> EditProfile()
@@ -277,7 +277,7 @@ namespace JobPortal.Controllers
             return View(user);
         }
 
-        [Authorize(Roles = "Employee")]
+        //[Authorize(Roles = "Employee")]
         [HttpPost]
         [Route("employee/update-profile")]
         public async Task<IActionResult> UpdateProfile([FromForm] User model)

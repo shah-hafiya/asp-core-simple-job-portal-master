@@ -166,7 +166,7 @@ namespace JobPortal.Controllers
         }
 
         [Route("mark-as-filled/{id}")]
-        [Authorize(Roles = "Employer")]
+        //[Authorize(Roles = "Employer")]
         public async Task<IActionResult> MarkAsFilled(int id)
         {
             var job = _context.Jobs.SingleOrDefault(x => x.Id == id);
